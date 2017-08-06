@@ -1,0 +1,60 @@
+This is a short description on how to back-up a DVD disc and save it as a file.
+
+The css_study tool must be included in your current PATH. Make sure you got the right permissions in case your drive requires them (e.g. use sudo).
+
+We asumme your DVD drive is /dev/dvd. The DVD to back-up must have been inserted. Let's make sure it works:
+
+$ css_study mmc inquiry /dev/dvd
+vendor: Optiarc 
+productId: DVD+-RW AD-7700H
+productRev: 100A
+
+Well, your drive probably won't be an "Optiarc". Don't bother.
+
+Let's have a look at the drive's RPC:
+
+$ css_study mmc report-rpc /dev/dvd
+typeCode: 1 (drive region is set)
+numberOfVendorResetsAvailable: 4 (0x4)
+numberOfUserControlledChangesAvailable: 4 (0x4)
+regionMask: 253 (2)
+
+This drive is set to region 2 (Europe). Anyway, for the backup, the drive's region doesn't matter (at least it doesn't matter in most cases).
+
+Let's have a look at the DVD:
+
+$ css_study mmc copyright /dev/dvd
+type: 1 (CSS/CPPM)
+region-code: 0xfe (1)
+
+This DVD is for region 1 (USA). The DVD doesn't match the drive's region. As said above, it doesn't matter.
+
+Before we can read the DVD, we have to unlock the drive. Every DVD-player-software will do the trick. At startup, the DVD-player-software unlocks the drive and the drive will remain unlocked as long as it is powered and the disc doesn't change. So you can stop the player as soon as the software got started. If there is no player-software for your operating system, use the following command:
+
+$ css_study handshake unlock /dev/dvd
+unlocked
+
+Now you can copy the user-data (i.e. the feature) of the DVD. Use the Linux tool you like most. Here, we use ddrescue. In cases your disc is scratchy or your drive optic is reluctant, it has a neat choice of options to rescue your data.
+
+NOTE: A small number of DVD drives do not permit access to the user-data (or to marked blocks in the user-data area) if the region doesn't match. You can stop at this point. This cannot be solved by software. You need to change your drive's region or its firmware. Or you simply get another drive that doesn't lock on region mismatch.
+
+$ ddrescue -b 2048 /dev/dvd image_css.udf image_css.log
+...
+
+This copies the encrypted feature (i.e. the user-data with the UDF/ISO file system) to the file named "image_css.udf". This does not copy the encrypted disc-key-block, neither the encrypted title-keys. These keys are not located in the user-data area. Instead, they are stored in the disc's lead-in and in the sectors' headers.
+
+Don't bother. We don't need them since there is a simple way to predict the title-keys:
+
+The people who developed CSS left a door open. There is always some unscrambled piece of data on a DVD. And you can predict how these data will continue. So you get a lot of plaintext/cipher pairs. It's only a question of probability to recover the key. And the odds are in your favour.
+
+NOTE: In very rare-cases the prediction won't work. You can stop at this point. You need the disk-key (which can also be recovered).
+
+$ css_study recover title-key image_css.udf | grep -v none | grep -v failed | tee keys
+
+The title keys are stored in the "keys" file. The first column holds the VMG/VTS number. The seconds column is the corresponding title-key. The rest are statistical data which aren't used to unscramble the feature:
+
+$ css_study unscramble feature keys image_css.udf backup.udf
+
+This may take a few minutes. Once finished, we got the unscrambled feature in the file named "backup.udf". You may want to burn a backup disc with this file.
+
+NOTE: In some countries it may be prohibited to create backups or to unscramble DVDs. You may want to seek legal advice.

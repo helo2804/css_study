@@ -1,0 +1,53 @@
+INSTALLATION
+
+In this example, we use a Debian live-image to compile the software. Any Linux should work.
+
+$ wget http://cdimage.debian.org/cdimage/archive/8.9.0-live/i386/iso-hybrid/debian-live-8.9.0-i386-standard.iso
+
+Here we use a virtual machine. You may prefer to run a CD, a USB pen drive, or whatever else you prefer.
+
+$ qemu-system-x86_64 -enable-kvm -drive format=raw,file=debian-live-8.9.0-i386-standard.iso -m 4G -net nic -net user -cpu host -smp cores=2 -vga vmware
+
+----
+
+Login: user
+Password: live
+
+Download the source, e.g.:
+
+$ wget https://github.com/helo2804/css_study/archive/master.zip
+
+We have to install a few packages to unpack the source and to compile the tool.
+
+$ sudo apt-get install unzip
+
+$ unzip master.zip
+
+$ cd css_study-master/src
+
+$ sudo apt-get install make
+
+$ sudo apt-get install g++
+
+$ sudo apt-get install libboost-dev
+
+When all packages are installed and the source is unpacked, we can run the compiler:
+
+$ make
+
+In case there weren't any error, the tool can now be executed:
+
+$ ./css_study help
+...
+
+This should display the help screen. If this works, we can save the tool for later execution.
+
+$ scp css_study myself@my_pc:
+...
+
+$ sudo halt
+
+----
+
+At this point, we can get rid of the Debian image.
+
