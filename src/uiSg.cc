@@ -29,6 +29,7 @@
 #include "Os.h"
 #include "Sg.h"
 #include "Ui.h"
+#include <iostream>
 
 static void version(ArgL &argL)
 {
